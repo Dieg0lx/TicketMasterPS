@@ -1,0 +1,11 @@
+{
+    "files.associations": {
+        "procesopago.h": "c",
+        "string.h": "c",
+        "cine.h": "c",
+        "dialaboral.h": "c",
+        "teatro.h": "c",
+        "stdio.h": "c"
+    },
+    "C_Cpp.default.compilerPath": "C:/Program Files/CodeBlocks/MinGW/bin/gcc.exe"
+}
