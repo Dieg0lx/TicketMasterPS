@@ -1,17 +1,26 @@
 #include "raylib.h"
 #include "screen_menu.h"
+#include <math.h> 
 
-static Rectangle teatroButton = { 440, 200, 400, 60 };
-static Rectangle cineButton = { 440, 300, 400, 60 };
-static Rectangle museoButton = { 440, 400, 400, 60 };
+static Rectangle teatroButton = { 600, 250, 400, 60 };
+static Rectangle cineButton = { 600, 350, 400, 60 };
+static Rectangle museoButton = { 600, 450, 400, 60 };
 
 int menuSelection = 0;
 
+static Texture2D logo;
+static float logoFloatTime = 0.0f;
+
+
 void InitMenuScreen(void) {
     menuSelection = 0;
+    logo = LoadTexture("src/resources/icon.png");
 }
 
 void UpdateMenuScreen(void) {
+
+    logoFloatTime += GetFrameTime();
+
     if (IsMouseButtonReleased(MOUSE_LEFT_BUTTON)) {
         if (CheckCollisionPointRec(GetMousePosition(), teatroButton)) menuSelection = 1;
         if (CheckCollisionPointRec(GetMousePosition(), cineButton)) menuSelection = 2;
@@ -20,22 +29,40 @@ void UpdateMenuScreen(void) {
 }
 
 void DrawMenuScreen(void) {
-    ClearBackground(RAYWHITE);
-    DrawText("MENU PRINCIPAL", GetScreenWidth() / 2 - MeasureText("MENU PRINCIPAL", 30) / 2, 40, 30, DARKGRAY);
+   
+    Color backgroundColor = { 25, 25, 35, 255 };    // Azul oscuro casi negro
+    Color textColor = { 230, 230, 230, 255 };      // Texto blanco-grisáceo
+    Color buttonColor = { 45, 45, 55, 255 };       // Botones de un gris oscuro
+    Color buttonBorderColor = { 65, 65, 75, 255 }; // Borde sutil para los botones
+    Color accentColor = { 0, 255, 255, 255 };      // Cian brillante para el hover (efecto neón)
 
-    DrawRectangleRec(teatroButton, LIGHTGRAY);
-    if (CheckCollisionPointRec(GetMousePosition(), teatroButton)) DrawRectangleLinesEx(teatroButton, 2, MAROON);
-    DrawText("1. Venta de Boletos Teatro", teatroButton.x + 20, teatroButton.y + 15, 20, BLACK);
+    ClearBackground(backgroundColor);
 
-    DrawRectangleRec(cineButton, LIGHTGRAY);
-    if (CheckCollisionPointRec(GetMousePosition(), cineButton)) DrawRectangleLinesEx(cineButton, 2, MAROON);
-    DrawText("2. Venta de Boletos Cine", cineButton.x + 20, cineButton.y + 15, 20, BLACK);
+    float logoY = GetScreenHeight() / 2.0f - logo.height / 2.0f + sinf(logoFloatTime * 2.0f) * 15.0f;
+    DrawTexture(logo, 150, (int)logoY, WHITE);
 
-    DrawRectangleRec(museoButton, LIGHTGRAY);
-    if (CheckCollisionPointRec(GetMousePosition(), museoButton)) DrawRectangleLinesEx(museoButton, 2, MAROON);
-    DrawText("3. Venta de Boletos Museo", museoButton.x + 20, museoButton.y + 15, 20, BLACK);
+
+    DrawText("MENU PRINCIPAL", 600, 150, 40, textColor);
+
+    // --- Botón de Teatro ---
+    bool teatroHover = CheckCollisionPointRec(GetMousePosition(), teatroButton);
+    DrawRectangleRec(teatroButton, buttonColor); // Fondo del botón
+    DrawRectangleLinesEx(teatroButton, 2, teatroHover ? accentColor : buttonBorderColor); // Borde que cambia con hover
+    DrawText("Venta de Boletos Teatro", teatroButton.x + 55, teatroButton.y + 20, 20, textColor);
+
+    // --- Botón de Cine ---
+    bool cineHover = CheckCollisionPointRec(GetMousePosition(), cineButton);
+    DrawRectangleRec(cineButton, buttonColor);
+    DrawRectangleLinesEx(cineButton, 2, cineHover ? accentColor : buttonBorderColor);
+    DrawText("Venta de Boletos Cine", cineButton.x + 65, cineButton.y + 20, 20, textColor);
+
+    // --- Botón de Museo ---
+    bool museoHover = CheckCollisionPointRec(GetMousePosition(), museoButton);
+    DrawRectangleRec(museoButton, buttonColor);
+    DrawRectangleLinesEx(museoButton, 2, museoHover ? accentColor : buttonBorderColor);
+    DrawText("Venta de Boletos Museo", museoButton.x + 55, museoButton.y + 20, 20, textColor);
 }
 
 void UnloadMenuScreen(void) {
-    // Vacío por ahora
+    UnloadTexture(logo);
 }
