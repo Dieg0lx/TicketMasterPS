@@ -1,19 +1,16 @@
 #include "raylib.h"
 #include "screen_teatro.h"
-#include "../BackEnd/teatro.h" // Incluimos el backend para los precios
+#include "../BackEnd/teatro.h"
 
-// --- Variables de estado de esta pantalla ---
-static int obraSeleccionada = 0; // 1: Hamlet, 2: Cats
-static int seccionSeleccionada = 0; // 1: VIP, 2: Platea, 3: Galeria
+static int obraSeleccionada = 0;
+static int seccionSeleccionada = 0;
 static int cantidadBoletos = 1;
 static float precioUnitario = 0.0f;
 
-// Variables de comunicación con main.c
 int teatroScreenResult = 0;
 float teatroTotalCompra = 0.0f;
 
-// --- Definición de los elementos de la UI (Rectángulos) ---
-// Obras
+
 static Rectangle hamletButton = { 100, 150, 250, 50 };
 static Rectangle catsButton = { 100, 220, 250, 50 };
 // Secciones
@@ -29,7 +26,6 @@ static Rectangle volverButton = { 100, 600, 250, 60 };
 
 
 void InitTeatroScreen(void) {
-    // Reiniciamos el estado de la pantalla cada vez que entramos
     obraSeleccionada = 0;
     seccionSeleccionada = 0;
     cantidadBoletos = 1;
@@ -39,7 +35,6 @@ void InitTeatroScreen(void) {
 }
 
 void UpdateTeatroScreen(void) {
-    // --- Lógica de Clics ---
     if (IsMouseButtonReleased(MOUSE_LEFT_BUTTON)) {
         // Selección de Obra
         if (CheckCollisionPointRec(GetMousePosition(), hamletButton)) obraSeleccionada = 1;
@@ -57,16 +52,22 @@ void UpdateTeatroScreen(void) {
         // Botones de Acción
         if (CheckCollisionPointRec(GetMousePosition(), volverButton)) teatroScreenResult = -1; // Volver
         if (CheckCollisionPointRec(GetMousePosition(), comprarButton) && obraSeleccionada > 0 && seccionSeleccionada > 0) {
-            teatroScreenResult = 1; // Comprar
+            teatroScreenResult = 1;
         }
     }
 
-    // --- Lógica de Cálculo (llamando al BackEnd) ---
     precioUnitario = getPrecioSeccionTeatro(seccionSeleccionada);
     teatroTotalCompra = precioUnitario * cantidadBoletos;
 }
 
 void DrawTeatroScreen(void) {
+
+    Color backgroundColor    = (Color){ 25, 25, 35, 255 };
+    Color textColor          = (Color){ 230, 230, 230, 255 };
+    Color buttonColor        = (Color){ 45, 45, 55, 255 };
+    Color buttonBorderColor  = (Color){ 65, 65, 75, 255 };
+    Color accentColor        = (Color){ 0, 255, 255, 255 };
+
     ClearBackground(RAYWHITE);
     DrawText("VENTA DE BOLETOS - TEATRO", 150, 30, 30, DARKGRAY);
 
@@ -98,18 +99,14 @@ void DrawTeatroScreen(void) {
     DrawText("TOTAL:", 800, 450, 20, GRAY);
     DrawText(TextFormat("$%.2f", teatroTotalCompra), 950, 450, 40, MAROON);
 
-    // Solo mostramos la vestimenta si se ha seleccionado una obra
     if (obraSeleccionada > 0) {
-        // 1. Llamamos al Back-End para obtener el texto
         const char* vestimenta = getVestimentaTeatro(obraSeleccionada);
         
-        // 2. Dibujamos el texto que nos devolvió el Back-End
         DrawText(TextFormat("Vestimenta Requerida: %s", vestimenta), 800, 520, 20, DARKGRAY);
     }
 
-    // --- Dibujar Acciones ---
     DrawRectangleRec(volverButton, DARKGRAY);
-    DrawText("Volver", volverButton.x + 55, volverButton.y + 20, 20, WHITE);
+    DrawText("Volver al Menu", volverButton.x + 55, volverButton.y + 20, 20, WHITE);
     
     // El botón de comprar solo se "activa" si se ha seleccionado todo
     Color comprarColor = (obraSeleccionada > 0 && seccionSeleccionada > 0) ? GREEN : GRAY;
@@ -118,5 +115,5 @@ void DrawTeatroScreen(void) {
 }
 
 void UnloadTeatroScreen(void) {
-    // Vacío por ahora
+
 }

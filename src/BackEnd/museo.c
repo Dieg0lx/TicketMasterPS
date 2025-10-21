@@ -16,7 +16,6 @@ float getPrecioMuseo(int idMuseo) {
     }
 }
 
-// Esta función solo devuelve el texto de las restricciones.
 const char* getRestriccionesMuseo(int idMuseo) {
     switch(idMuseo) {
         case 1: return "No fotografias con flash, no tocar las obras";

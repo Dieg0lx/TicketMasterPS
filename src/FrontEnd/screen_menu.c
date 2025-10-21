@@ -8,10 +8,9 @@ static Rectangle museoButton  = { 600, 450, 400, 60 };
 
 int menuSelection = 0;
 
-static Texture2D logo = {0};      // Asegura cero-inicializado
+static Texture2D logo = {0};   
 static float logoFloatTime = 0.0f;
 
-// ----- funciones para pruebas (puras) -----
 int HitTestMenu(Vector2 mouse) {
     if (CheckCollisionPointRec(mouse, teatroButton)) return 1;
     if (CheckCollisionPointRec(mouse, cineButton))   return 2;
@@ -23,10 +22,8 @@ void SetMenuSelectionFromPoint(Vector2 mouse) {
     menuSelection = HitTestMenu(mouse);
 }
 
-// ----- ciclo de vida de la pantalla -----
 void InitMenuScreen(void) {
     menuSelection = 0;
-    // Cargar textura solo si hay ventana (evita crash en tests sin ventana)
     if (IsWindowReady()) {
         logo = LoadTexture("src/resources/icon.png");
     } else {
@@ -52,7 +49,7 @@ void DrawMenuScreen(void) {
     ClearBackground(backgroundColor);
 
     float logoY = GetScreenHeight()/2.0f - logo.height/2.0f + sinf(logoFloatTime*2.0f)*15.0f;
-    if (logo.id > 0) { // Dibuja solo si está cargado correctamente
+    if (logo.id > 0) {
         DrawTexture(logo, 150, (int)logoY, WHITE);
     }
 
@@ -75,7 +72,7 @@ void DrawMenuScreen(void) {
 }
 
 void UnloadMenuScreen(void) {
-    if (logo.id > 0) {      // Evita UnloadTexture sobre un texture inválido
+    if (logo.id > 0) { 
         UnloadTexture(logo);
         logo = (Texture2D){0};
     }

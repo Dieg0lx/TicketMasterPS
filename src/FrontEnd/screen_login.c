@@ -3,7 +3,6 @@
 #include "screen_login.h"
 #include <string.h>
 
-// --- Variables locales del módulo ---
 static char username[20] = {0};
 static char password[20] = {0};
 static int userLetterCount = 0;
@@ -13,14 +12,13 @@ static Rectangle userBox = { 440, 250, 400, 50 };
 static Rectangle passBox = { 440, 350, 400, 50 };
 static Rectangle loginButton = { 565, 450, 150, 50 };
 
-static int activeBox = 0; // 0: none, 1: userBox, 2: passBox
+static int activeBox = 0;
 static char errorMessage[100] = {0};
 static int framesCounter = 0;
 
 int loginResult = 0;
 
 void InitLoginScreen(void) {
-    // Reiniciar todos los valores
     strcpy(username, "");
     strcpy(password, "");
     strcpy(errorMessage, "");
@@ -30,7 +28,6 @@ void InitLoginScreen(void) {
     loginResult = 0;
 }
 
-// --- FUNCIÓN CORREGIDA ---
 void UpdateLoginScreen(void) {
     framesCounter++;
 
@@ -45,8 +42,8 @@ void UpdateLoginScreen(void) {
         }
     }
 
-    // Captura de texto (ahora dentro de la función)
-    int key = GetCharPressed(); // La variable 'key' se declara aquí
+    // Captura de texto
+    int key = GetCharPressed();
 
     if (activeBox == 1) { // Usuario
         if ((key >= 32 && key <= 125) && (userLetterCount < 19)) {
@@ -64,19 +61,19 @@ void UpdateLoginScreen(void) {
         }
     }
 
-    // Lógica del botón (ahora dentro de la función)
+    // Lógica del botón
     if (CheckCollisionPointRec(GetMousePosition(), loginButton) && IsMouseButtonReleased(MOUSE_LEFT_BUTTON)) {
         if (!validarUsuario(username)) {
             strcpy(errorMessage, "Error: Usuario debe tener 4-10 caracteres alfanumericos.");
         } else if (!validarContrasena(password)) {
             strcpy(errorMessage, "Error: Contraseña debe tener 8-16 caracteres.");
         } else if (verificarCredenciales(username, password)) {
-            loginResult = 1; // ¡Éxito!
+            loginResult = 1;
         } else {
             strcpy(errorMessage, "Error: Usuario o contraseña incorrectos.");
         }
     }
-} // <-- La función UpdateLoginScreen termina aquí correctamente
+}
 
 void DrawLoginScreen(void) {
     ClearBackground(RAYWHITE);
@@ -108,5 +105,5 @@ void DrawLoginScreen(void) {
 }
 
 void UnloadLoginScreen(void) {
-    // No hay texturas que descargar, así que esta función está vacía por ahora.
+
 }

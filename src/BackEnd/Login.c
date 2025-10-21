@@ -23,13 +23,12 @@ int validarContrasena(const char *password) {
 }
 
 int verificarCredenciales(const char *user, const char *password) {
-    // Credenciales correctas
     const char *userFinal = "usuario";
     const char *passwordFinal = "claveSegura";
 
     if (strcmp(user, userFinal) == 0 && strcmp(password, passwordFinal) == 0) {
-        return 1; // Éxito
+        return 1; 
     }
-    return 0; // Fallo
+    return 0; 
 }
 

@@ -20,7 +20,7 @@ int esSoloLetras(const char *cadena) {
             return 0; 
         }
     }
-    return 1; // Verdadero
+    return 1;
 }
 
 int validarNumeroTarjeta(const char *numero) {
@@ -37,7 +37,6 @@ int validarCVV(const char *cvv) {
 }
 
 int validarFechaVencimiento(const char *fecha) {
-    // Validación simple para el formato MM/AA
     return strlen(fecha) == 5 && fecha[2] == '/' && isdigit(fecha[0]) && isdigit(fecha[1]) && isdigit(fecha[3]) && isdigit(fecha[4]);
 }
 
@@ -48,7 +47,7 @@ int ejecutarPago(DatosPago *pago, float monto) {
         validarCVV(pago->cvv) &&
         validarFechaVencimiento(pago->fechaVencimiento))
     {
-        return 1; // Pago exitoso
+        return 1;
     }
-    return 0; // Pago fallido
+    return 0; 
 }

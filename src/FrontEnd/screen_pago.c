@@ -1,6 +1,6 @@
 #include "raylib.h"
 #include "screen_pago.h"
-#include "../BackEnd/procesoPago.h" // Incluimos el backend para las validaciones
+#include "../BackEnd/procesoPago.h"
 #include <string.h>
 
 // --- Variables de estado de la pantalla ---
@@ -8,12 +8,11 @@ static float montoAPagar = 0.0f;
 int pagoScreenResult = 0;
 
 // --- Variables para los campos de texto ---
-static DatosPago datos; // Usamos la estructura del backend
+static DatosPago datos;
 static char errorMessage[100] = {0};
 static int activeBox = 0; // 0: none, 1: tarjeta, 2: nombre, 3: fecha, 4: cvv
 static int framesCounter = 0;
 
-// --- Definición de la UI ---
 static Rectangle boxTarjeta = { 340, 180, 600, 50 };
 static Rectangle boxNombre = { 340, 280, 600, 50 };
 static Rectangle boxFecha = { 340, 380, 280, 50 };
@@ -26,7 +25,6 @@ void InitPagoScreen(float monto) {
     pagoScreenResult = 0;
     strcpy(errorMessage, "");
     
-    // Limpiar la estructura de datos
     memset(&datos, 0, sizeof(DatosPago));
     
     activeBox = 0;
@@ -34,7 +32,6 @@ void InitPagoScreen(float monto) {
 }
 
 void UpdatePagoScreen(void) {
-    // Lógica para cambiar de caja de texto activa
     if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
         if (CheckCollisionPointRec(GetMousePosition(), boxTarjeta)) activeBox = 1;
         else if (CheckCollisionPointRec(GetMousePosition(), boxNombre)) activeBox = 2;
@@ -43,7 +40,6 @@ void UpdatePagoScreen(void) {
         else activeBox = 0;
     }
 
-    // Lógica para capturar texto
     if (activeBox > 0) {
         int key = GetCharPressed();
         while (key > 0) {
@@ -64,10 +60,9 @@ void UpdatePagoScreen(void) {
     }
     framesCounter++;
 
-    // Lógica de los botones
     if (IsMouseButtonReleased(MOUSE_LEFT_BUTTON)) {
         if (CheckCollisionPointRec(GetMousePosition(), cancelarButton)) {
-            pagoScreenResult = -1; // Cancelado
+            pagoScreenResult = -1;
         }
         if (CheckCollisionPointRec(GetMousePosition(), pagarButton)) {
             // --- CONEXIÓN CON EL BACKEND ---
@@ -76,9 +71,8 @@ void UpdatePagoScreen(void) {
             else if (!validarFechaVencimiento(datos.fechaVencimiento)) strcpy(errorMessage, "Error: Fecha debe ser MM/AA.");
             else if (!validarCVV(datos.cvv)) strcpy(errorMessage, "Error: CVV debe tener 3 o 4 digitos.");
             else {
-                // Si todo es válido, intentamos ejecutar el pago
                 if (ejecutarPago(&datos, montoAPagar)) {
-                    pagoScreenResult = 1; // ¡Éxito!
+                    pagoScreenResult = 1;
                 } else {
                     strcpy(errorMessage, "Error: El pago fue rechazado.");
                 }
@@ -133,5 +127,5 @@ void DrawPagoScreen(void) {
 }
 
 void UnloadPagoScreen(void) {
-    // No hay nada que liberar por ahora
+
 }

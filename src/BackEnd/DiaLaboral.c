@@ -8,7 +8,6 @@ int validarDiaLaboral() {
     struct tm *tm_info = localtime(&t);
     int dia_semana = tm_info->tm_wday;
     
-    // 0 = Domingo, 6 = Sábado
     if (dia_semana == 0 || dia_semana == 6) {
         return 0;
     }
