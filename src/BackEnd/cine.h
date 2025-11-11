@@ -6,5 +6,6 @@ float getPrecioServicioCine(int servicio);
 
 
 int esServicioDisponibleCine(int cine, int servicio);
+int registrarCompraCine(const char* username, int servicioId, float precio);
 
 #endif // CINE_H

@@ -1,6 +1,7 @@
 #include "raylib.h"
 #include "screen_cine.h"
-#include "../BackEnd/cine.h" // Incluimos el backend para precios y disponibilidad
+#include "../BackEnd/cine.h"
+#include "screen_pago.h" 
 
 // --- Variables de estado de la pantalla ---
 static int cineSeleccionado = 0;    // 1: Cinemark, 2: Cinepolis, 3: Cinemex
@@ -48,6 +49,13 @@ void InitCineScreen(void) {
 }
 
 void UpdateCineScreen(void) {
+
+    // --- Lógica de Cálculo (MOVIDA AL INICIO) ---
+    // Calculamos el precio ANTES de manejar los clics para asegurar
+    // que el total esté actualizado si se presiona "Comprar".
+    precioUnitario = getPrecioServicioCine(servicioSeleccionado);
+    cineTotalCompra = precioUnitario * cantidadBoletos;
+
     // --- Lógica de Clics ---
     if (IsMouseButtonReleased(MOUSE_LEFT_BUTTON)) {
         // Selección de Cine
@@ -75,14 +83,17 @@ void UpdateCineScreen(void) {
 
         // Botones de Acción
         if (CheckCollisionPointRec(GetMousePosition(), volverButton)) cineScreenResult = -1;
+        
+        // --- ¡AQUÍ ESTÁ LA MODIFICACIÓN! ---
         if (CheckCollisionPointRec(GetMousePosition(), comprarButton) && cineSeleccionado > 0 && peliculaSeleccionada > 0 && servicioSeleccionado > 0) {
+            
+            // 1. (NUEVO) Llamamos a InitPagoScreen con los datos correctos
+            InitPagoScreen("CINE", servicioSeleccionado, cineTotalCompra);
+
+            // 2. (Tu código) Le decimos a main.c que cambie de pantalla
             cineScreenResult = 1;
         }
     }
-
-    // --- Lógica de Cálculo (llamando al BackEnd) ---
-    precioUnitario = getPrecioServicioCine(servicioSeleccionado);
-    cineTotalCompra = precioUnitario * cantidadBoletos;
 }
 
 void DrawCineScreen(void) {

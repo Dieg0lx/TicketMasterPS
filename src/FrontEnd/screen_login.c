@@ -2,6 +2,7 @@
 #include "../BackEnd/Login.h" 
 #include "screen_login.h"
 #include <string.h>
+#include "../BackEnd/session.h"
 
 static char username[20] = {0};
 static char password[20] = {0};
@@ -11,12 +12,14 @@ static int passLetterCount = 0;
 static Rectangle userBox = { 440, 250, 400, 50 };
 static Rectangle passBox = { 440, 350, 400, 50 };
 static Rectangle loginButton = { 565, 450, 150, 50 };
+static Rectangle registerButton = { 735, 450, 150, 50 };
 
 static int activeBox = 0;
 static char errorMessage[100] = {0};
 static int framesCounter = 0;
 
 int loginResult = 0;
+int goToRegister = 0;
 
 void InitLoginScreen(void) {
     strcpy(username, "");
@@ -26,6 +29,7 @@ void InitLoginScreen(void) {
     passLetterCount = 0;
     activeBox = 0;
     loginResult = 0;
+    goToRegister = 0;
 }
 
 void UpdateLoginScreen(void) {
@@ -69,9 +73,13 @@ void UpdateLoginScreen(void) {
             strcpy(errorMessage, "Error: Contraseña debe tener 8-16 caracteres.");
         } else if (verificarCredenciales(username, password)) {
             loginResult = 1;
+            strcpy(g_loggedInUser, username);
         } else {
             strcpy(errorMessage, "Error: Usuario o contraseña incorrectos.");
         }
+    }
+    if (CheckCollisionPointRec(GetMousePosition(), registerButton) && IsMouseButtonReleased(MOUSE_LEFT_BUTTON)) {
+        goToRegister = 1;
     }
 }
 
@@ -101,6 +109,8 @@ void DrawLoginScreen(void) {
     // Botón y mensaje de error
     DrawRectangleRec(loginButton, MAROON);
     DrawText("Ingresar", loginButton.x + loginButton.width / 2 - MeasureText("Ingresar", 20) / 2, loginButton.y + 15, 20, WHITE);
+    DrawRectangleRec(registerButton, DARKGRAY);
+    DrawText("Registrarse", registerButton.x + registerButton.width / 2 - MeasureText("Registrarse", 20) / 2, registerButton.y + 15, 20, WHITE);
     DrawText(errorMessage, GetScreenWidth() / 2 - MeasureText(errorMessage, 20) / 2, 520, 20, RED);
 }
 

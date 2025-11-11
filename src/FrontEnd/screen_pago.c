@@ -1,6 +1,8 @@
 #include "raylib.h"
 #include "screen_pago.h"
 #include "../BackEnd/procesoPago.h"
+#include "../BackEnd/cine.h" 
+#include "../BackEnd/session.h"
 #include <string.h>
 
 // --- Variables de estado de la pantalla ---
@@ -13,6 +15,11 @@ static char errorMessage[100] = {0};
 static int activeBox = 0; // 0: none, 1: tarjeta, 2: nombre, 3: fecha, 4: cvv
 static int framesCounter = 0;
 
+// --- Variables para guardar datos de la compra ---
+static char s_tipoServicio[20] = {0};
+static int s_servicioId = 0;
+
+// --- Definición de UI ---
 static Rectangle boxTarjeta = { 340, 180, 600, 50 };
 static Rectangle boxNombre = { 340, 280, 600, 50 };
 static Rectangle boxFecha = { 340, 380, 280, 50 };
@@ -20,8 +27,15 @@ static Rectangle boxCvv = { 660, 380, 280, 50 };
 static Rectangle pagarButton = { 660, 550, 280, 60 };
 static Rectangle cancelarButton = { 340, 550, 280, 60 };
 
-void InitPagoScreen(float monto) {
-    montoAPagar = monto;
+// Tuve que limpiar los caracteres invisibles de tu función Init, 
+// si te da error de "token", borra esta función y pega la tuya original.
+void InitPagoScreen(const char* tipoServicio, int servicioId, float precioTotal) {
+    // 1. Guardamos los nuevos datos en nuestras variables estáticas
+    strcpy(s_tipoServicio, tipoServicio);
+    s_servicioId = servicioId;
+    
+    // 2. Usamos tu lógica existente
+    montoAPagar = precioTotal; 
     pagoScreenResult = 0;
     strcpy(errorMessage, "");
     
@@ -30,6 +44,7 @@ void InitPagoScreen(float monto) {
     activeBox = 0;
     framesCounter = 0;
 }
+
 
 void UpdatePagoScreen(void) {
     if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
@@ -40,6 +55,7 @@ void UpdatePagoScreen(void) {
         else activeBox = 0;
     }
 
+    // --- Lógica de captura de texto (Tu código está perfecto) ---
     if (activeBox > 0) {
         int key = GetCharPressed();
         while (key > 0) {
@@ -60,10 +76,12 @@ void UpdatePagoScreen(void) {
     }
     framesCounter++;
 
+    // --- Lógica de Botones (AQUÍ ESTÁ LA CORRECCIÓN) ---
     if (IsMouseButtonReleased(MOUSE_LEFT_BUTTON)) {
         if (CheckCollisionPointRec(GetMousePosition(), cancelarButton)) {
             pagoScreenResult = -1;
         }
+        
         if (CheckCollisionPointRec(GetMousePosition(), pagarButton)) {
             // --- CONEXIÓN CON EL BACKEND ---
             if (!validarNumeroTarjeta(datos.numeroTarjeta)) strcpy(errorMessage, "Error: Tarjeta debe tener 16 digitos.");
@@ -71,9 +89,20 @@ void UpdatePagoScreen(void) {
             else if (!validarFechaVencimiento(datos.fechaVencimiento)) strcpy(errorMessage, "Error: Fecha debe ser MM/AA.");
             else if (!validarCVV(datos.cvv)) strcpy(errorMessage, "Error: CVV debe tener 3 o 4 digitos.");
             else {
+                // 1. Validamos el pago
                 if (ejecutarPago(&datos, montoAPagar)) {
-                    pagoScreenResult = 1;
+                    
+                    // 2. ¡SI EL PAGO ES EXITOSO, GUARDAMOS EN LA BD! (ESTO FALTABA)
+                    if (registrarCompraCine(g_loggedInUser, s_servicioId, montoAPagar)) { // <--- NUEVO
+                        // ¡Éxito! Pago y BD correctos.
+                        pagoScreenResult = 1; // <--- NUEVO
+                    } else {
+                        // El pago se procesó, pero la BD falló (Error grave)
+                        strcpy(errorMessage, "Pago aprobado, pero error al registrar boleto."); // <--- NUEVO
+                    }
+
                 } else {
+                    // El pago fue rechazado por la tarjeta
                     strcpy(errorMessage, "Error: El pago fue rechazado.");
                 }
             }

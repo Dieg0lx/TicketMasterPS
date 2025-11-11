@@ -1,7 +1,7 @@
 #ifndef SCREEN_PAGO_H
 #define SCREEN_PAGO_H
 
-void InitPagoScreen(float monto); // Recibe el monto a pagar
+void InitPagoScreen(const char* tipoServicio, int servicioId, float precioTotal);
 void UpdatePagoScreen(void);
 void DrawPagoScreen(void);
 void UnloadPagoScreen(void);

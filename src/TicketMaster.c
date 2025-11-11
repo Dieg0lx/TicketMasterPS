@@ -3,6 +3,7 @@
 #include <string.h>
 #include <time.h>
 #include "raylib.h"
+#include "BackEnd/database.h"
 
 #include "BackEnd/teatro.h"
 #include "BackEnd/cine.h"
@@ -17,9 +18,11 @@
 #include "FrontEnd/screen_pago.h"
 #include "FrontEnd/screen_cine.h"
 #include "FrontEnd/screen_museo.h"
+#include "FrontEnd/screen_register.h"
 
 typedef enum GameScreen {
     LOGIN,
+    REGISTER,
     MAIN_MENU,
     TEATRO,
     CINE,
@@ -40,15 +43,16 @@ int main(void) {
     SetWindowIcon(icon);
     UnloadImage(icon);
 
-    // 2. Establecemos el estado inicial
     GameScreen currentScreen = LOGIN;
     
-    // Inicializamos los recursos de la primera pantalla
     InitLoginScreen();
     
     SetTargetFPS(60);
 
-    // --- Bucle Principal de la Aplicación ---
+    if (db_init("ticketmaster.db") != 0) {
+        return -1; 
+    }
+
     while (!WindowShouldClose()) {
         
    
@@ -58,16 +62,28 @@ int main(void) {
         switch(currentScreen) {
             case LOGIN:
                 {
-                    UpdateLoginScreen(); // Actualizamos la pantalla de login
-                    
-                    // Verificamos si el login fue exitoso
+                    UpdateLoginScreen(); 
                     if (loginResult == 1) {
                         UnloadLoginScreen();
                         InitMenuScreen();
                         currentScreen = MAIN_MENU;
                     }
+                    else if (goToRegister == 1) {
+                        UnloadLoginScreen();
+                        InitRegisterScreen();
+                        currentScreen = REGISTER;
+                    }
                 } break;
-                case MAIN_MENU:
+            case REGISTER:
+                {
+                    UpdateRegisterScreen();
+                    if (registerScreenResult != 0) {
+                        UnloadRegisterScreen();
+                        InitLoginScreen();
+                        currentScreen = LOGIN;
+                    }
+                } break;
+            case MAIN_MENU:
                 UpdateMenuScreen();
                 if (menuSelection != 0) {
                     if (menuSelection == 1 && validarDiaLaboral()) 
@@ -94,7 +110,6 @@ int main(void) {
                     UpdateTeatroScreen(); 
                     if (teatroScreenResult == 1) {
                         UnloadTeatroScreen(); 
-                        InitPagoScreen(teatroTotalCompra); 
                         currentScreen = PAGO;
                     } 
                     else if (teatroScreenResult == -1) {
@@ -108,7 +123,6 @@ int main(void) {
                     UpdateCineScreen();
                     if (cineScreenResult == 1) { 
                         UnloadCineScreen();
-                        InitPagoScreen(cineTotalCompra);
                         currentScreen = PAGO;
                     } else if (cineScreenResult == -1) {
                         UnloadCineScreen();
@@ -122,9 +136,8 @@ int main(void) {
                     UpdateMuseoScreen();
                     if (museoScreenResult == 1) { 
                         UnloadMuseoScreen();
-                        InitPagoScreen(museoTotalCompra);
                         currentScreen = PAGO;
-                    } else if (museoScreenResult == -1) { // Volver
+                    } else if (museoScreenResult == -1) { 
                         UnloadMuseoScreen();
                         InitMenuScreen();
                         currentScreen = MAIN_MENU;
@@ -146,13 +159,14 @@ int main(void) {
         
             default: break;
         }
-
-        // --- 4. Lógica de Dibujado (Vista) ---
         BeginDrawing();
             ClearBackground(RAYWHITE);
             switch(currentScreen) {
                 case LOGIN:
                     DrawLoginScreen();
+                    break;
+                case REGISTER:
+                    DrawRegisterScreen();
                     break;
                 case MAIN_MENU:
                     DrawMenuScreen();
@@ -181,6 +195,7 @@ int main(void) {
 
     UnloadSound(fxClick);
     CloseAudioDevice();
+    db_close();
     CloseWindow();
     return 0;
 }
