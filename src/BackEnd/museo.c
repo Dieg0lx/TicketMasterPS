@@ -1,24 +1,22 @@
 #include <stdio.h>
-#include <string.h>
-#include "procesoPago.h"
-#include "DiaLaboral.h"
 #include "museo.h"
+#include "database.h"
+#include "sqlite3.h"
 
-
-float getPrecioMuseo(int idMuseo) {
-    switch(idMuseo) {
-        case 1: return 25.00f; // Louvre
-        case 2: return 30.00f; // Metropolitano
-        case 3: return 20.00f; // Vaticano
-        case 4: return 5.00f;  // Antropologia
-        case 5: return 18.00f; // Catalunya
+float getPrecioMuseo(int museoId) {
+    switch(museoId) {
+        case 1: return 200.0f; 
+        case 2: return 180.0f; 
+        case 3: return 150.0f; 
+        case 4: return 80.0f;  
+        case 5: return 120.0f; 
         default: return 0.0f;
     }
 }
 
-const char* getRestriccionesMuseo(int idMuseo) {
-    switch(idMuseo) {
-        case 1: return "No fotografias con flash, no tocar las obras";
+const char* getRestriccionesMuseo(int museoId) {
+    switch(museoId) {
+        case 1: return "No flash, no tripie";
         case 2: return "No mochilas grandes, no comida";
         case 3: return "Vestimenta apropiada, no shorts ni camisetas sin manga";
         case 4: return "No fotografias en salas especiales";

@@ -3,4 +3,4 @@
 
 int validarDiaLaboral();
 
-#endif // UTIL_H
+#endif

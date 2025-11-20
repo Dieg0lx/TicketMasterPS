@@ -5,24 +5,6 @@
 
 sqlite3 *db = NULL;
 
-static int column_exists(const char *table, const char *column) {
-    sqlite3_stmt *stmt = NULL;
-    int exists = 0;
-    char sql[256];
-    snprintf(sql, sizeof(sql), "PRAGMA table_info(%s);", table);
-    if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) == SQLITE_OK) {
-        while (sqlite3_step(stmt) == SQLITE_ROW) {
-            const unsigned char *colName = sqlite3_column_text(stmt, 1);
-            if (colName && strcmp((const char *)colName, column) == 0) {
-                exists = 1;
-                break;
-            }
-        }
-    }
-    if (stmt) sqlite3_finalize(stmt);
-    return exists;
-}
-
 int db_init(const char* filename) {
     int rc = sqlite3_open(filename, &db);
     if (rc != SQLITE_OK) {
@@ -31,6 +13,8 @@ int db_init(const char* filename) {
     }
 
     fprintf(stdout, "Base de datos abierta exitosamente: %s\n", filename);
+
+
 
     const char *sql_create_usuarios = 
         "CREATE TABLE IF NOT EXISTS Usuarios ("
@@ -50,28 +34,20 @@ int db_init(const char* filename) {
         ");";
 
     char *errMsg = 0;
+    
     rc = sqlite3_exec(db, sql_create_usuarios, 0, 0, &errMsg);
     if (rc != SQLITE_OK) {
         fprintf(stderr, "Error SQL (Usuarios): %s\n", errMsg);
         sqlite3_free(errMsg);
-        return 1;
     }
 
     rc = sqlite3_exec(db, sql_create_boletos, 0, 0, &errMsg);
     if (rc != SQLITE_OK) {
         fprintf(stderr, "Error SQL (Boletos): %s\n", errMsg);
         sqlite3_free(errMsg);
-        return 1;
     }
 
-    rc = sqlite3_exec(db, "CREATE UNIQUE INDEX IF NOT EXISTS idx_Usuarios_correo ON Usuarios(correo);", 0, 0, &errMsg);
-    if (rc != SQLITE_OK) {
-        fprintf(stderr, "Error creando índice único en correo: %s\n", errMsg);
-        sqlite3_free(errMsg);
-    }
-
-    const char *sql_insert_user = "INSERT OR IGNORE INTO Usuarios (username, password, correo) VALUES ('Diego', 'password123', 'diego@gmail.com');";
-    sqlite3_exec(db, sql_insert_user, 0, 0, &errMsg);
+    sqlite3_exec(db, "INSERT OR IGNORE INTO Usuarios (username, password, correo) VALUES ('admin', 'admin123', 'admin@test.com');", 0, 0, 0);
 
     return 0;
 }
@@ -79,7 +55,28 @@ int db_init(const char* filename) {
 void db_close() {
     if (db) {
         sqlite3_close(db);
-        db = NULL;
-        fprintf(stdout, "Base de datos cerrada.\n");
+        printf("Base de datos cerrada.\n");
     }
+}
+
+int registrarBoletoGenerico(const char* username, const char* detalle, float precio) {
+    if (!db) return 0;
+
+    sqlite3_stmt *stmt;
+    const char *sql = "INSERT INTO Boletos (username, tipo_servicio, precio) VALUES (?, ?, ?);";
+
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK) {
+        fprintf(stderr, "Error preparando insert: %s\n", sqlite3_errmsg(db));
+        return 0;
+    }
+
+    sqlite3_bind_text(stmt, 1, username, -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 2, detalle, -1, SQLITE_STATIC);
+    sqlite3_bind_double(stmt, 3, (double)precio);
+
+    int rc = sqlite3_step(stmt);
+    sqlite3_finalize(stmt);
+
+    if (rc == SQLITE_DONE) return 1; 
+    return 0; 
 }

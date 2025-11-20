@@ -9,4 +9,4 @@ void UnloadLoginScreen(void);
 extern int loginResult;
 extern int goToRegister;
 
-#endif // SCREEN_LOGIN_H
+#endif

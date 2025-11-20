@@ -16,47 +16,33 @@ float getPrecioServicioCine(int servicio) {
     }
 }
 
-  
 int esServicioDisponibleCine(int cine, int servicio) {
-    if (cine == 1 && servicio > 4) {
-        return 0; // No disponible
-    }
-    if (cine == 3 && servicio == 5) {
-        return 0; // No disponible
-    }
-    
+    if (cine == 1 && servicio > 4) return 0; 
+    if (cine == 3 && servicio == 5) return 0; 
     return 1;
 }
 
 int registrarCompraCine(const char* username, int servicioId, float precio) {
-    sqlite3_stmt *stmt;
-    const char *sql = "INSERT INTO Boletos (username, tipo_servicio, precio) VALUES (?, ?, ?);";
+    sqlite3_stmt *stmt; 
+    const char *sql = "INSERT INTO Boletos (username, tipo_servicio, precio) VALUES (?, ?, ?);"; // <--- Faltaba esto
 
-    // 1. Preparar la consulta
     int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
     if (rc != SQLITE_OK) {
         fprintf(stderr, "Error al preparar INSERT: %s\n", sqlite3_errmsg(db));
-        return 0; // Falla
+        return 0;
     }
 
-    // 2. Asignar valores
-    char servicioStr[20];
+    char servicioStr[50];
     sprintf(servicioStr, "Cine_Servicio_%d", servicioId);
 
     sqlite3_bind_text(stmt, 1, username, -1, SQLITE_STATIC);
-    sqlite3_bind_text(stmt, 2, servicioStr, -1, SQLITE_TRANSIENT); // Transient porque servicioStr es local
+    sqlite3_bind_text(stmt, 2, servicioStr, -1, SQLITE_STATIC);
     sqlite3_bind_double(stmt, 3, (double)precio);
 
-    // 3. Ejecutar
     rc = sqlite3_step(stmt);
-    if (rc != SQLITE_DONE) {
-        fprintf(stderr, "Error al ejecutar INSERT: %s\n", sqlite3_errmsg(db));
-        sqlite3_finalize(stmt);
-        return 0; // Falla
-    }
-
-    // 4. Finalizar
+    
     sqlite3_finalize(stmt);
-    printf("Compra de cine registrada para %s.\n", username);
-    return 1; // Éxito
+
+    if (rc == SQLITE_DONE) return 1;
+    return 0; 
 }

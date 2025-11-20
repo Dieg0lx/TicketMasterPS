@@ -4,18 +4,15 @@
 #include "procesoPago.h"
 #include "DiaLaboral.h"
 
-// Esta función solo calcula y devuelve el precio. No usa printf ni scanf.
 float getPrecioSeccionTeatro(int seccion) {
-    // Usamos los mismos precios que tenías en tu versión de consola.
     switch (seccion) {
-        case 1: return 150.0f; // Precio Luneta
-        case 2: return 200.0f; // Precio Palco
-        case 3: return 100.0f; // Precio Galeria
-        default: return 0.0f;  // Si no se ha seleccionado nada o la sección no es válida
+        case 1: return 150.0f;
+        case 2: return 200.0f;
+        case 3: return 100.0f;
+        default: return 0.0f;
     }
 }
 
-// Esta función solo devuelve el texto de la vestimenta.
 const char* getVestimentaTeatro(int idTeatro) {
     switch(idTeatro) {
         case 1: return "Formal/Etiqueta";

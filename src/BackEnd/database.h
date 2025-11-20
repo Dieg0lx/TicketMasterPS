@@ -10,4 +10,6 @@ int db_init(const char* filename);
 
 void db_close();
 
+int registrarBoletoGenerico(const char* username, const char* detalle, float precio);
+
 #endif

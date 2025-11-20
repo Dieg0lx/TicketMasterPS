@@ -1,104 +1,86 @@
-#include "raylib.h"
+#include "../../include/raylib.h"
 #include "screen_museo.h"
-#include "../BackEnd/museo.h" 
+#include "ui_styles.h"
+#include "screen_carrito.h" 
+#include <stdio.h>
 
-static int museoSeleccionado = 0;
-static int cantidadBoletos = 1;
-static float precioUnitario = 0.0f;
-
-
+static int museoSel = 0;
+static int cantidad = 1;
 int museoScreenResult = 0;
 float museoTotalCompra = 0.0f;
+static float msgTimer = 0.0f;
 
+const char* listaMuseos[] = { "Louvre (Paris)", "MET (NY)", "Vaticano (Roma)", "Antropología (MX)", "MNAC (BCN)" };
+const float preciosMuseos[] = { 200, 180, 150, 80, 120 };
 
-static Rectangle museoLouvreButton = { 100, 150, 350, 50 };
-static Rectangle museoMetButton = { 100, 220, 350, 50 };
-static Rectangle museoVaticanoButton = { 100, 290, 350, 50 };
-static Rectangle museoAntropologiaButton = { 100, 360, 350, 50 };
-static Rectangle museoCatalunyaButton = { 100, 430, 350, 50 };
+static Rectangle btnMenos = { 800, 250, 60, 60 };
+static Rectangle btnMas   = { 920, 250, 60, 60 };
 
-
-static Rectangle minusButton = { 800, 250, 60, 60 };
-static Rectangle plusButton = { 1020, 250, 60, 60 };
-
-
-static Rectangle comprarButton = { 930, 600, 250, 60 };
-static Rectangle volverButton = { 100, 600, 250, 60 };
+static Rectangle btnAgregar = { 800, 480, 250, 50 };
+static Rectangle btnPagar   = { 800, 550, 250, 50 };
+static Rectangle btnVolver  = { 100, 550, 150, 50 };
 
 void InitMuseoScreen(void) {
-    museoSeleccionado = 0;
-    cantidadBoletos = 1;
-    precioUnitario = 0.0f;
-    museoScreenResult = 0;
-    museoTotalCompra = 0.0f;
+    museoSel = 0; cantidad = 1; museoScreenResult = 0; museoTotalCompra = 0.0f; msgTimer = 0.0f;
 }
 
 void UpdateMuseoScreen(void) {
-    if (IsMouseButtonReleased(MOUSE_LEFT_BUTTON)) {
-        // Selección de Museo
-        if (CheckCollisionPointRec(GetMousePosition(), museoLouvreButton)) museoSeleccionado = 1;
-        if (CheckCollisionPointRec(GetMousePosition(), museoMetButton)) museoSeleccionado = 2;
-        if (CheckCollisionPointRec(GetMousePosition(), museoVaticanoButton)) museoSeleccionado = 3;
-        if (CheckCollisionPointRec(GetMousePosition(), museoAntropologiaButton)) museoSeleccionado = 4;
-        if (CheckCollisionPointRec(GetMousePosition(), museoCatalunyaButton)) museoSeleccionado = 5;
+    if (msgTimer > 0) {
+        msgTimer -= GetFrameTime();
+        return;
+    }
 
-        // Selector de Cantidad
-        if (CheckCollisionPointRec(GetMousePosition(), minusButton) && cantidadBoletos > 1) cantidadBoletos--;
-        if (CheckCollisionPointRec(GetMousePosition(), plusButton) && cantidadBoletos < 10) cantidadBoletos++;
-
-        // Botones de Acción
-        if (CheckCollisionPointRec(GetMousePosition(), volverButton)) museoScreenResult = -1;
-        if (CheckCollisionPointRec(GetMousePosition(), comprarButton) && museoSeleccionado > 0) {
-            museoScreenResult = 1;
+    Vector2 mouse = GetMousePosition();
+    float startY = 150;
+    for (int i = 0; i < 5; i++) {
+        Rectangle itemRect = { 100, startY + (i * 60), 400, 50 };
+        if (CheckCollisionPointRec(mouse, itemRect) && IsMouseButtonReleased(MOUSE_LEFT_BUTTON)) {
+            museoSel = i + 1;
         }
     }
 
-    // --- Lógica de Cálculo (llamando al BackEnd) ---
-    precioUnitario = getPrecioMuseo(museoSeleccionado);
-    museoTotalCompra = precioUnitario * cantidadBoletos;
+    if (DrawStyledButton(btnMenos, "-") && cantidad > 1) cantidad--;
+    if (DrawStyledButton(btnMas, "+")) cantidad++;
+
+    float precioUnitario = (museoSel > 0) ? preciosMuseos[museoSel-1] : 0;
+    museoTotalCompra = precioUnitario * cantidad;
+
+    if (museoSel > 0) {
+        char titulo[50];
+        sprintf(titulo, "Museo: %s", listaMuseos[museoSel-1]);
+
+        if (DrawStyledButton(btnAgregar, "Agregar al Carrito")) {
+            AgregarAlCarrito(titulo, "Entrada General", precioUnitario, cantidad);
+            msgTimer = 3.0f;
+            museoSel = 0; 
+            cantidad = 1;
+        }
+        
+        if (DrawStyledButton(btnPagar, TextFormat("PAGAR $%.2f >", museoTotalCompra))) {
+            AgregarAlCarrito(titulo, "Entrada General", precioUnitario, cantidad);
+            museoScreenResult = 2;
+        }
+    }
+
+    if (DrawStyledButton(btnVolver, "Volver")) museoScreenResult = -1;
 }
 
 void DrawMuseoScreen(void) {
-    ClearBackground(RAYWHITE);
-    DrawText("VENTA DE BOLETOS - MUSEO", GetScreenWidth() / 2 - MeasureText("VENTA DE BOLETOS - MUSEO", 40) / 2, 40, 40, DARKGRAY);
-
-    // --- Columna Izquierda ---
-    DrawText("1. Seleccione el Museo:", 100, 120, 20, GRAY);
-    const char* museos[] = {"Museo de Louvre", "Museo Metropolitano de Arte", "Museos Vaticanos", "Museo de Antropologia", "Museo de Arte de Catalunya"};
-    Rectangle botonesMuseo[] = {museoLouvreButton, museoMetButton, museoVaticanoButton, museoAntropologiaButton, museoCatalunyaButton};
-    for (int i = 0; i < 5; i++) {
-        bool seleccionado = (museoSeleccionado == i + 1);
-        DrawRectangleRec(botonesMuseo[i], seleccionado ? MAROON : LIGHTGRAY);
-        DrawText(museos[i], botonesMuseo[i].x + 20, botonesMuseo[i].y + 15, 20, seleccionado ? WHITE : BLACK);
-    }
-
-    // --- Columna Derecha ---
-    DrawText("2. Cantidad:", 800, 220, 20, GRAY);
-    DrawRectangleRec(minusButton, LIGHTGRAY);
-    DrawText("-", minusButton.x + 22, minusButton.y + 10, 40, BLACK);
-    DrawRectangleRec(plusButton, LIGHTGRAY);
-    DrawText("+", plusButton.x + 20, plusButton.y + 10, 40, BLACK);
-    DrawText(TextFormat("%02i", cantidadBoletos), 920, 260, 40, MAROON);
-
-    DrawText("TOTAL:", 800, 380, 40, GRAY);
-    DrawText(TextFormat("$%.2f", museoTotalCompra), 950, 380, 40, MAROON);
-
-    // --- Información Adicional (Restricciones) ---
-    if (museoSeleccionado > 0) {
-        const char* restricciones = getRestriccionesMuseo(museoSeleccionado);
-        DrawText("Restricciones:", 600, 450, 20, DARKGRAY);
-        DrawText(restricciones, 600, 480, 20, GRAY);
-    }
-
-    // --- Acciones ---
-    DrawRectangleRec(volverButton, DARKGRAY);
-    DrawText("Volver al Menu", volverButton.x + 55, volverButton.y + 20, 20, WHITE);
+    ClearBackground(COL_BG);
+    DrawText("Visitas Guiadas a Museos", 100, 50, 40, COL_TEXT_WHITE);
     
-    Color comprarColor = (museoSeleccionado > 0) ? GREEN : GRAY;
-    DrawRectangleRec(comprarButton, comprarColor);
-    DrawText("Proceder al Pago", comprarButton.x + 45, comprarButton.y + 20, 20, WHITE);
+    float startY = 150;
+    for (int i = 0; i < 5; i++) {
+        Rectangle itemRect = { 100, startY + (i * 60), 400, 50 };
+        bool selected = (museoSel == (i + 1));
+        DrawRectangleRounded(itemRect, 0.3f, 6, selected ? COL_PRIMARY : COL_PANEL);
+        DrawText(listaMuseos[i], itemRect.x + 20, itemRect.y + 15, 20, COL_TEXT_WHITE);
+        DrawText(TextFormat("$%.0f", preciosMuseos[i]), itemRect.x + 320, itemRect.y + 15, 20, COL_SUCCESS);
+    }
+
+    DrawText(TextFormat("%02d", cantidad), 870, 265, 30, COL_TEXT_WHITE);
+    
+    if (msgTimer > 0) DrawNotification("¡Agregado al Carrito!", msgTimer);
 }
 
-void UnloadMuseoScreen(void) {
-    // Vacío por ahora
-}
+void UnloadMuseoScreen(void) {}

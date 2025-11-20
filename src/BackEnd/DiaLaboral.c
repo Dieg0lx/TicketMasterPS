@@ -2,7 +2,6 @@
 #include <time.h>
 #include "DiaLaboral.h"
 
-// Función para validar día de la semana (evitar fines de semana)
 int validarDiaLaboral() {
     time_t t = time(NULL);
     struct tm *tm_info = localtime(&t);
